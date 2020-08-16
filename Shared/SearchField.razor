@@ -1,0 +1,172 @@
+﻿@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using System.Collections.Generic;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IJSRuntime JSRuntime
+
+<div>@item</div>
+<input @onchange="OnChanged" type="text" list="@RadioValue" autocomplete="on" />
+@if (list != null) {
+  <datalist id="pokemon">
+      @foreach (var item in list)
+      {
+        <option value="@item.name">
+         @item.name
+        </option>
+      }
+   </datalist>
+}
+@if (list2 != null) {
+  <datalist id="start-wars">
+      @foreach (var item in list2)
+      {
+        <option value="@item.name">
+         @item.name
+        </option>
+      }
+   </datalist>
+}
+@if (saveItems != null) {
+  <div >
+     @for (int i = 0; i < saveItems.Count; i++)
+      {
+        string item = saveItems[i];
+        int buffer=i;
+        <div>
+         @item <button @onclick="(async () => await RemoveItem(buffer))" type="button" class="btn btn-primary">Remove</button>
+        </div>
+      }
+   </div>
+}
+
+<div >
+  <input type="radio" name="gender" value="pokemon" @onchange="RadioSelection" checked=@(RadioValue.Equals("pokemon",StringComparison.OrdinalIgnoreCase))> Pokemons
+  <input type="radio" name="gender" value="start-wars" @onchange="RadioSelection" checked=@(RadioValue.Equals("start-wars",StringComparison.OrdinalIgnoreCase))> Star Wars Character
+</div>
+
+@if (list != null) {
+  <datalist id="pokemon">
+      @foreach (var item in list)
+      {
+        <option value="@item.name">
+         @item.name
+        </option>
+      }
+   </datalist>
+}
+
+
+@code {
+  string RadioValue = "pokemon";
+  private string item;
+  private List<Pokemon> list = new List<Pokemon>();
+  private List<StarWars> list2 = new List<StarWars>();
+
+  private List<string> saveItems = new List<string>();
+  private HttpClient httpClient = new HttpClient();
+
+  protected override async Task OnInitializedAsync()
+  {
+    list = await GetResultPokemons<Pokemon>();
+    list2 = await GetResultStartWars<StarWars>();
+    // Console.WriteLine(test);
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    await LoadSaveItems();
+  }
+
+  public async Task LoadSaveItems()
+  {
+    saveItems = await localStorage.GetItemAsync<List<string>>("search-items");
+  }
+
+  public async Task<List<T>> GetResultPokemons<T>() where T : ResultModel
+  {
+    var content = await getPokemons<T>();
+    return content;
+  }
+
+  public async Task<List<T>> getPokemons<T>() where T : ResultModel
+  {
+    var url = $"https://pokeapi.co/api/v2/pokemon?limit=964";
+    var json = await GetJsonAsync(url);
+    var response = JsonConvert.DeserializeObject<ResultModelRoot<T>>(json);
+    return response.Error ? null : response.results;
+  }
+
+  public async Task<List<T>> GetResultStartWars<T>() where T : ResultModel
+  {
+    var content = await getStarWars<T>();
+    return content;
+  }
+
+  public async Task<List<T>> getStarWars<T>() where T : ResultModel
+  {
+    var url = $"https://swapi.dev/api/people/";
+    var json = await GetJsonAsync(url);
+    var response = JsonConvert.DeserializeObject<ResultModelRoot<T>>(json);
+    return response.Error ? null : response.results;
+  }
+
+  public async Task<string> GetJsonAsync(string url)
+  {
+    var response = await httpClient.GetAsync(url);
+    response.EnsureSuccessStatusCode();
+    var json = response.Content.ReadAsStringAsync();
+    return await json;
+  }
+
+  private async Task OnChanged(ChangeEventArgs args)
+  {
+    // TODO check if existed on the list
+    if (args.Value.ToString() != "")
+    {
+      var items = new List<string>();
+
+      var storage = await localStorage.GetItemAsync<List<string>>("search-items");
+      if (storage != null)
+      {
+        items = storage;
+      }
+      items.Add(args.Value.ToString());
+      await localStorage.SetItemAsync("search-items", items);
+      await LoadSaveItems();
+    }
+  }
+
+  private async Task RemoveItem(int index)
+  {
+    var items = new List<string>();
+    items = await localStorage.GetItemAsync<List<string>>("search-items");
+    items.RemoveAt(index);
+    await localStorage.SetItemAsync("search-items", items);
+    await LoadSaveItems();
+  }
+
+  private void RadioSelection(ChangeEventArgs args)
+  {
+    RadioValue = args.Value.ToString();
+  }
+
+  // protected static string message
+  // {
+  //   get; set;
+  // }
+  // protected void CallCSMethod()
+  // {
+  //   JSRuntime.InvokeAsync<bool>("CSMethod");
+  // }
+  //
+  // protected void CallJSMethod()
+  // {
+  //   JSRuntime.InvokeAsync<bool>("JSMethod");
+  // }
+  //
+  // [JSInvokable]
+  // public static void CSCallBackMethod()
+  // {
+  //   message = "C# function called from JavaScript";
+  // }
+}

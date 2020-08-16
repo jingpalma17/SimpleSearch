@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TypeScriptToolsVersion>3.1</TypeScriptToolsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference
+        Include="Blazored.LocalStorage"
+        Version="3.0.0" />
+    <PackageReference
+        Include="Microsoft.AspNetCore.Blazor.HttpClient"
+        Version="3.0.0-preview8.19405.7"
+        PrivateAssets="all" />
+    <PackageReference
+        Include="Microsoft.TypeScript.MSBuild"
+        Version="3.9.7">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference
+        Include="Newtonsoft.Json"
+        Version="9.0.1" />
+  </ItemGroup>
+
+  <Target
+      Name="NpmInit"
+      AfterTargets="Build">
+    <Exec Command="npm install" />
+    <Exec Command="npm run tsc" />
+  </Target>
+
+</Project>
