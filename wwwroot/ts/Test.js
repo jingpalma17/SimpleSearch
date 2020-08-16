@@ -5,7 +5,7 @@ function asyncLocalStorageSetItem(key, value) {
 }
 function asyncLocalStorageGetItem(key) {
     return Promise.resolve().then(function () {
-        return localStorage.getItem('search-items');
+        return localStorage.getItem(key);
     });
 }
 //# sourceMappingURL=Test.js.map

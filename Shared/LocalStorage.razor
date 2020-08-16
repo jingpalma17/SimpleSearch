@@ -1,0 +1,91 @@
+﻿@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using System.Collections.Generic;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IJSRuntime JSRuntime
+
+<div>@item</div>
+@if (saveItems != null) {
+  <div >
+     @for (int i = 0; i < saveItems.Count; i++)
+      {
+        string item = saveItems[i];
+        int buffer=i;
+        <div>
+         @item <button @onclick="(async () => await RemoveItem(buffer))" type="button" class="btn btn-primary">Remove</button>
+        </div>
+      }
+   </div>
+}
+
+
+@code {
+
+  private string item;
+  private List<Pokemon> list = new List<Pokemon>();
+
+  private List<string> saveItems = new List<string>();
+  private HttpClient httpClient = new HttpClient();
+
+  protected override async Task OnInitializedAsync()
+  {
+    // Check why not rendering properly
+    list = await GetResultPokemons<Pokemon>();
+    // Console.WriteLine(test);
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    // TODO null checkin for local storage item
+    await LoadSaveItems();
+  }
+
+  public async Task<List<T>> GetResultPokemons<T>() where T : ResultModel
+  {
+    var content = await getPokemons<T>();
+    return content;
+  }
+
+  public async Task<List<T>> getPokemons<T>() where T : ResultModel
+  {
+    var url = $"https://pokeapi.co/api/v2/pokemon?limit=964";
+    var json = await GetJsonAsync(url);
+    var response = JsonConvert.DeserializeObject<ResultModelRoot<T>>(json);
+    return response.Error ? null : response.results;
+  }
+
+  public async Task<string> GetJsonAsync(string url)
+  {
+    var response = await httpClient.GetAsync(url);
+    response.EnsureSuccessStatusCode();
+    var json = response.Content.ReadAsStringAsync();
+    return await json;
+  }
+
+  private async Task RemoveItem(int index)
+  {
+    var items = new List<string>();
+    var json = await asyncLocalStorageGetItem<object>("search-items");
+    JArray array = JArray.Parse(json.ToString());
+    items = JsonConvert.DeserializeObject<List<string>>(array.ToString());
+    items.RemoveAt(index);
+    // TODO used asyncLocalStorageSetItem
+    await localStorage.SetItemAsync("search-items", items);
+    await LoadSaveItems();
+  }
+
+
+  public async Task LoadSaveItems()
+  {
+    var json = await asyncLocalStorageGetItem<object>("search-items");
+    JArray array = JArray.Parse(json.ToString());
+    saveItems = JsonConvert.DeserializeObject<List<string>>(array.ToString());
+  }
+
+  // TODO Moved to different service
+  public async Task<T> asyncLocalStorageGetItem<T>(string propName, T defaultValue = default)
+  => await JSRuntime.InvokeAsync<T>("asyncLocalStorageGetItem", propName, defaultValue);
+
+  public async Task<T> asyncLocalStorageSetItem<T>(string propName, T defaultValue = default)
+  => await JSRuntime.InvokeAsync<T>("asyncLocalStorageSetItem", propName, defaultValue);
+}
