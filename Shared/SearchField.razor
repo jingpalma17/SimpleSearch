@@ -60,17 +60,6 @@
   {
     list = await GetResultPokemons<Pokemon>();
     list2 = await GetResultStartWars<StarWars>();
-    // Console.WriteLine(test);
-  }
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    await LoadSaveItems();
-  }
-
-  public async Task LoadSaveItems()
-  {
-    saveItems = await localStorage.GetItemAsync<List<string>>("search-items");
   }
 
   public async Task<List<T>> GetResultPokemons<T>() where T : ResultModel
@@ -122,19 +111,10 @@
         items = storage;
       }
       items.Add(args.Value.ToString());
+      // TODO used asyncLocalStorageSetItem
       await localStorage.SetItemAsync("search-items", items);
-      //await LoadSaveItems();
       await child.LoadSaveItems();
     }
-  }
-
-  private async Task RemoveItem(int index)
-  {
-    var items = new List<string>();
-    items = await localStorage.GetItemAsync<List<string>>("search-items");
-    items.RemoveAt(index);
-    await localStorage.SetItemAsync("search-items", items);
-    await LoadSaveItems();
   }
 
   private void RadioSelection(ChangeEventArgs args)
