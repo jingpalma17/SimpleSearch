@@ -2,7 +2,8 @@
 @using Newtonsoft.Json.Linq;
 @using System.Collections.Generic;
 @inject Blazored.LocalStorage.ILocalStorageService localStorage;
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JSRuntime;
+@using Microsoft.AspNetCore.Components;
 
 <div>@item</div>
 @if (saveItems != null) {
@@ -24,7 +25,7 @@
   private string item;
   private List<Pokemon> list = new List<Pokemon>();
 
-  private List<string> saveItems = new List<string>();
+  public List<string> saveItems = new List<string>();
   private HttpClient httpClient = new HttpClient();
 
   protected override async Task OnInitializedAsync()
@@ -80,6 +81,7 @@
     var json = await asyncLocalStorageGetItem<object>("search-items");
     JArray array = JArray.Parse(json.ToString());
     saveItems = JsonConvert.DeserializeObject<List<string>>(array.ToString());
+    StateHasChanged();
   }
 
   // TODO Moved to different service

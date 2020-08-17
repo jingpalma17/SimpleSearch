@@ -2,7 +2,8 @@
 @using Newtonsoft.Json.Linq;
 @using System.Collections.Generic;
 @inject Blazored.LocalStorage.ILocalStorageService localStorage;
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JSRuntime;
+@using SimpleSearch.Shared;
 
 <div>@item</div>
 <input @onchange="OnChanged" type="text" list="@RadioValue" autocomplete="on" />
@@ -26,19 +27,6 @@
       }
    </datalist>
 }
-@if (saveItems != null) {
-  <div >
-     @for (int i = 0; i < saveItems.Count; i++)
-      {
-        string item = saveItems[i];
-        int buffer=i;
-        <div>
-         @item <button @onclick="(async () => await RemoveItem(buffer))" type="button" class="btn btn-primary">Remove</button>
-        </div>
-      }
-   </div>
-}
-
 <div >
   <input type="radio" name="gender" value="pokemon" @onchange="RadioSelection" checked=@(RadioValue.Equals("pokemon",StringComparison.OrdinalIgnoreCase))> Pokemons
   <input type="radio" name="gender" value="start-wars" @onchange="RadioSelection" checked=@(RadioValue.Equals("start-wars",StringComparison.OrdinalIgnoreCase))> Star Wars Character
@@ -55,12 +43,15 @@
    </datalist>
 }
 
+<LocalStorage @ref="child" />
 
 @code {
   string RadioValue = "pokemon";
   private string item;
   private List<Pokemon> list = new List<Pokemon>();
   private List<StarWars> list2 = new List<StarWars>();
+
+  LocalStorage child;
 
   private List<string> saveItems = new List<string>();
   private HttpClient httpClient = new HttpClient();
@@ -132,7 +123,8 @@
       }
       items.Add(args.Value.ToString());
       await localStorage.SetItemAsync("search-items", items);
-      await LoadSaveItems();
+      //await LoadSaveItems();
+      await child.LoadSaveItems();
     }
   }
 
