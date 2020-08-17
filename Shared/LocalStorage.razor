@@ -38,14 +38,7 @@
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-
-    // TODO removed once null checking exist
-    // List<string> list1 = new List<string>(new string[] { "" });
-    // await localStorage.SetItemAsync("search-items", list1);
-
-    // TODO null checkin for local storage item
     await LoadSaveItems();
-
   }
 
   public async Task<List<T>> GetResultPokemons<T>() where T : ResultModel
@@ -86,9 +79,12 @@
   public async Task LoadSaveItems()
   {
     var json = await asyncLocalStorageGetItem<object>("search-items");
-    JArray array = JArray.Parse(json.ToString());
-    saveItems = JsonConvert.DeserializeObject<List<string>>(array.ToString());
-    StateHasChanged();
+    if (json != null)
+    {
+      JArray array = JArray.Parse(json.ToString());
+      saveItems = JsonConvert.DeserializeObject<List<string>>(array.ToString());
+      StateHasChanged();
+    }
   }
 
   // TODO Moved to different service
