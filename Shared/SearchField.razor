@@ -110,10 +110,26 @@
       {
         items = storage;
       }
-      items.Add(args.Value.ToString());
-      // TODO used asyncLocalStorageSetItem
-      await localStorage.SetItemAsync("search-items", items);
-      await child.LoadSaveItems();
+
+
+      // TODO Make generic instad of string only
+      var isFound = false;
+      if (RadioValue == "pokemon")
+      {
+        isFound = list.Find(item => item.name == args.Value.ToString()) != null;
+      }
+      else if (RadioValue == "start-wars")
+      {
+        isFound = list2.Find(item => item.name == args.Value.ToString()) != null;
+      }
+
+      if (isFound)
+      {
+        items.Add(args.Value.ToString());
+        // TODO used asyncLocalStorageSetItem
+        await localStorage.SetItemAsync("search-items", items);
+        await child.LoadSaveItems();
+      }
     }
   }
 

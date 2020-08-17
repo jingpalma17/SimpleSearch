@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Components;
 
 <div>@item</div>
+<h5>Saved items</h5>
 @if (saveItems != null) {
   <div >
      @for (int i = 0; i < saveItems.Count; i++)
@@ -37,8 +38,14 @@
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
+
+    // TODO removed once null checking exist
+    // List<string> list1 = new List<string>(new string[] { "" });
+    // await localStorage.SetItemAsync("search-items", list1);
+
     // TODO null checkin for local storage item
     await LoadSaveItems();
+
   }
 
   public async Task<List<T>> GetResultPokemons<T>() where T : ResultModel
